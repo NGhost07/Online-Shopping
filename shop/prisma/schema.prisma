@@ -1,0 +1,199 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum PaymentType {
+  CASH
+  CARD
+  ONLINE
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+enum DeliveryStatus {
+  DELIVERED
+  DELIVERING
+  CANCELLED
+}
+
+model User {
+  user_id String @id @default(uuid())
+  email String @unique
+  first_name String
+  last_name String
+  password_hash String
+  phone_number String?
+  role Role @default(USER)
+  createAt DateTime @default(now())
+  updateAt DateTime @updatedAt()
+  addresses Address[]
+  notifications Notification[]
+  orders Order[]
+  productReviews ProductReview[]
+  carts Cart[]
+}
+
+model Address {
+  address_id String @id @default(uuid())
+  city String
+  addressLine String
+  postal_code String
+  createAt DateTime @default(now())
+  updateAt DateTime @updatedAt()
+  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  userId String
+  delivery Delivery[]
+}
+
+model Category {
+  category_id String @id @default(uuid())
+  title String
+  slug String
+  content String?
+  createAt DateTime @default(now())
+  updateAt DateTime @updatedAt()
+  products Product[]
+}
+
+model Product {
+  product_id String @id @default(uuid())
+  title String
+  price Decimal
+  quantity BigInt @default(0)
+  description String?
+  img_url String?
+  createAt DateTime @default(now())
+  updateAt DateTime @updatedAt()
+  category Category @relation(fields: [categoryId], references: [category_id] ,onDelete: Cascade)
+  categoryId String
+  productMetas ProductMeta[]
+  productReviews ProductReview[]
+  orserDetails OrderDetails[]
+  carts Cart[]
+}
+
+model ProductMeta {
+  product_meta_id String @id @default(uuid())
+  key String
+  content String?
+  createAt DateTime @default(now())
+  updateAt DateTime @updatedAt()
+  product Product @relation(fields: [productId], references: [product_id], onDelete: Cascade)
+  productId String
+}
+
+model ProductReview {
+  product_review_id String @id @default(uuid())
+  title String
+  rating Int @default(0)
+  content String
+  createAt DateTime @default(now())
+  updateAt DateTime @updatedAt()
+  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  userId String
+  parent ProductReview? @relation("ParentProductReviews", fields: [parentId], references: [product_review_id], onDelete: Cascade)
+  parentId String?
+  childs ProductReview[] @relation("ParentProductReviews")
+  product Product @relation(fields: [productId], references: [product_id], onDelete: Cascade)
+  productId String
+}
+
+model Order {
+  order_id String @id @default(uuid())
+  status OrderStatus @default(PENDING)
+  totalAmount Decimal
+  createAt DateTime @default(now())
+  updateAt DateTime @updatedAt()
+  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  userId String
+  payments Payment[]
+  orderDetails OrderDetails[]
+  delivery Delivery[]
+}
+
+model OrderDetails {
+  order_details_id String @id @default(uuid())
+  quantity Int
+  totalPrice Decimal
+  createAt DateTime @default(now())
+  updateAt DateTime @updatedAt()
+  order Order @relation(fields: [orderId], references: [order_id], onDelete: Cascade)
+  orderId String
+  product Product @relation(fields: [productId], references: [product_id], onDelete: Cascade)
+  productId String
+}
+
+model Cart {
+  cart_id String @id @default(uuid())
+  amount Int
+  createAt DateTime @default(now())
+  updateAt DateTime @updatedAt()
+  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  userId String
+  product Product @relation(fields: [productId], references: [product_id], onDelete: Cascade)
+  productId String
+}
+
+model Payment {
+  payment_id String @id @default(uuid())
+  type PaymentType
+  amount Decimal
+  status PaymentStatus @default(PENDING)
+  createAt DateTime @default(now())
+  updateAt DateTime @updatedAt()
+  order Order @relation(fields: [orderId], references: [order_id], onDelete: Cascade)
+  orderId String
+}
+
+model Discount {
+  discount_id String @id @default(uuid())
+  promo_code String
+  discount_amount Decimal
+  startAt DateTime @default(now())
+  expirationAt DateTime
+}
+
+model Delivery {
+  delivery_id String @id @default(uuid())
+  status DeliveryStatus
+  estimatedDeliveryDate DateTime?
+  actualDeliveryDate DateTime?
+  createdAt DateTime @default(now())
+  updateAt DateTime @updatedAt()
+  order Order @relation(fields: [orderId], references: [order_id], onDelete: Cascade)
+  orderId String
+  address Address @relation(fields: [addressId], references: [address_id], onDelete: Cascade)
+  addressId String
+}
+
+model Notification{
+  notification_id String @id @default(uuid())
+  message String
+  createdAt DateTime @default(now())
+  updateAt DateTime @updatedAt()
+  user User @relation(fields: [userId], references: [user_id], onDelete: Cascade)
+  userId String
+}

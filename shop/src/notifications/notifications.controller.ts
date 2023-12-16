@@ -15,12 +15,30 @@ import { Notification, Role } from '@prisma/client';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiInternalServerErrorResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
+@ApiTags('Notifications')
+@ApiBearerAuth()
+@ApiUnauthorizedResponse({ description: 'Unauthorized' })
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('notifications')
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
+  @ApiOperation({ summary: 'Create new Notification' })
+  @ApiForbiddenResponse({ description: 'Requires Role ADMIN' })
+  @ApiCreatedResponse({ description: 'Successfully created Notification' })
+  @ApiBadRequestResponse({ description: 'Bad request CreateNotificationDto' })
   @Roles(Role.ADMIN)
   @Post()
   async create(
@@ -35,17 +53,26 @@ export class NotificationsController {
     });
   }
 
+  @ApiOperation({ summary: 'Get all Notifications' })
+  @ApiForbiddenResponse({ description: 'Requires Role ADMIN' })
+  @ApiOkResponse({ description: 'Ok' })
   @Roles(Role.ADMIN)
   @Get()
   async findAll(): Promise<Notification[]> {
     return this.notificationsService.findAll();
   }
 
+  @ApiOperation({ summary: 'Get Notification by id' })
+  @ApiOkResponse({ description: 'Ok' })
+  @ApiInternalServerErrorResponse({ description: 'Invalid Notification Id' })
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<Notification> {
     return this.notificationsService.notification({ notification_id: id });
   }
 
+  @ApiOperation({ summary: 'Get Notification by User id' })
+  @ApiOkResponse({ description: 'Ok' })
+  @ApiInternalServerErrorResponse({ description: 'Invalid User Id' })
   @Get('user-id/:userId')
   async findManyByUserId(
     @Param('userId') userId: string,
@@ -55,6 +82,13 @@ export class NotificationsController {
     });
   }
 
+  @ApiOperation({ summary: 'Update Notification by Id' })
+  @ApiForbiddenResponse({ description: 'Requires Role ADMIN' })
+  @ApiOkResponse({ description: 'Ok' })
+  @ApiInternalServerErrorResponse({
+    description: 'Invalid Notification Id',
+  })
+  @ApiBadRequestResponse({ description: 'Bad request UpdateNotificationDto' })
   @Roles(Role.ADMIN)
   @Patch(':id')
   async update(
@@ -73,6 +107,10 @@ export class NotificationsController {
     });
   }
 
+  @ApiOperation({ summary: 'Delete Notification by Id' })
+  @ApiForbiddenResponse({ description: 'Requires Role ADMIN' })
+  @ApiOkResponse({ description: 'Ok' })
+  @ApiInternalServerErrorResponse({ description: 'Invalid Notification id' })
   @Roles(Role.ADMIN)
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<Notification> {

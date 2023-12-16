@@ -1,14 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class CreateNotificationDto {
+export class UpdatePasswordDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  message: string;
+  old_password: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  userId: string;
+  new_password: string;
 }

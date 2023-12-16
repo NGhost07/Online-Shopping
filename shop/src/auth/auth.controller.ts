@@ -3,12 +3,27 @@ import { AuthService } from './auth.service';
 import { Request, Response } from 'express';
 import { RegisterDto } from './dto/register-user.dto';
 import { LoginDto } from './dto/login-user.dto';
+import {
+  ApiBadRequestResponse,
+  ApiInternalServerErrorResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @ApiOperation({ summary: 'Register a new user' })
+  @ApiOkResponse({ status: 200, description: 'Successfully register user!' })
+  @ApiBadRequestResponse({ status: 400, description: 'Bad request!' })
+  @ApiInternalServerErrorResponse({
+    status: 500,
+    description: 'Internal Server Error!',
+  })
   async register(
     @Req() request: Request,
     @Res() response: Response,
@@ -39,6 +54,12 @@ export class AuthController {
   }
 
   @Post('login')
+  @ApiOperation({ summary: 'Login' })
+  @ApiOkResponse({ status: 200, description: 'Successfully login!' })
+  @ApiInternalServerErrorResponse({
+    status: 500,
+    description: 'Email or password incorrect!',
+  })
   async login(
     @Req() request: Request,
     @Res() response: Response,

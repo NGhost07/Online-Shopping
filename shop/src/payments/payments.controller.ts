@@ -15,12 +15,28 @@ import { Payment, Role } from '@prisma/client';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiInternalServerErrorResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
+@ApiTags('Payments')
+@ApiBearerAuth()
+@ApiUnauthorizedResponse({ description: 'Unauthorized' })
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('payments')
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
+  @ApiOperation({ summary: 'Create new Payment' })
+  @ApiCreatedResponse({ description: 'Successfully created Payment' })
+  @ApiBadRequestResponse({ description: 'Bad request CreatePaymentDto' })
   @Post()
   async create(@Body() createPaymentDto: CreatePaymentDto): Promise<Payment> {
     const { type, amount, status, orderId } = createPaymentDto;
@@ -34,17 +50,25 @@ export class PaymentsController {
     });
   }
 
+  @ApiOperation({ summary: 'Get all Payments' })
+  @ApiOkResponse({ description: 'Ok' })
   @Roles(Role.ADMIN)
   @Get()
   async findAll(): Promise<Payment[]> {
     return this.paymentsService.findAll();
   }
 
+  @ApiOperation({ summary: 'Get Payment by id' })
+  @ApiOkResponse({ description: 'Ok' })
+  @ApiInternalServerErrorResponse({ description: 'Invalid Payment Id' })
   @Get(':id')
   async findOneById(@Param('id') id: string): Promise<Payment | null> {
     return this.paymentsService.payment({ payment_id: id });
   }
 
+  @ApiOperation({ summary: 'Get Payments by Order id' })
+  @ApiOkResponse({ description: 'Ok' })
+  @ApiInternalServerErrorResponse({ description: 'Invalid Order Id' })
   @Get('order-id/:orderId')
   async findManyByOrderId(
     @Param('orderId') orderId: string,
@@ -54,6 +78,12 @@ export class PaymentsController {
     });
   }
 
+  @ApiOperation({ summary: 'Update Payment by Id' })
+  @ApiOkResponse({ description: 'Ok' })
+  @ApiInternalServerErrorResponse({
+    description: 'Invalid Payment Id',
+  })
+  @ApiBadRequestResponse({ description: 'Bad request UpdatePaymentDto' })
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -73,6 +103,9 @@ export class PaymentsController {
     });
   }
 
+  @ApiOperation({ summary: 'Delete Payment by Id' })
+  @ApiOkResponse({ description: 'Ok' })
+  @ApiInternalServerErrorResponse({ description: 'Invalid Payment id' })
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<Payment> {
     return this.paymentsService.delete({ payment_id: id });

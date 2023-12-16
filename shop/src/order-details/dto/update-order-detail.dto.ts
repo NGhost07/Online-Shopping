@@ -1,4 +1,20 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateOrderDetailDto } from './create-order-detail.dto';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsNumber, IsString } from 'class-validator';
 
-export class UpdateOrderDetailDto extends PartialType(CreateOrderDetailDto) {}
+export class UpdateOrderDetailDto {
+  @ApiProperty({ required: false })
+  @IsNumber()
+  quantity?: number;
+
+  @ApiProperty({ required: false })
+  @IsNumber()
+  totalPrice?: number;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  orderId?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  productId?: string;
+}

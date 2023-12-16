@@ -1,4 +1,16 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateProductMetaDto } from './create-product-meta.dto';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString } from 'class-validator';
 
-export class UpdateProductMetaDto extends PartialType(CreateProductMetaDto) {}
+export class UpdateProductMetaDto {
+  @ApiProperty({ required: false })
+  @IsString()
+  key?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  content?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  productId?: string;
+}

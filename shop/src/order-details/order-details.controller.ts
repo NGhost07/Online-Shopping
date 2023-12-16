@@ -15,12 +15,29 @@ import { OrderDetails, Role } from '@prisma/client';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiInternalServerErrorResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
+@ApiTags('Order details')
+@ApiBearerAuth()
+@ApiUnauthorizedResponse({ description: 'Unauthorized' })
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('order-details')
 export class OrderDetailsController {
   constructor(private readonly orderDetailsService: OrderDetailsService) {}
 
+  @ApiOperation({ summary: 'Create new Order Details' })
+  @ApiCreatedResponse({ description: 'Successfully created Order Detail' })
+  @ApiBadRequestResponse({ description: 'Bad request CreateOrderDetailDto' })
   @Post()
   async create(
     @Body() createOrderDetailDto: CreateOrderDetailDto,
@@ -38,13 +55,18 @@ export class OrderDetailsController {
     });
   }
 
+  @ApiOperation({ summary: 'Get all Orders Details' })
+  @ApiForbiddenResponse({ description: 'Requires Role ADMIN' })
+  @ApiOkResponse({ description: 'Ok' })
   @Roles(Role.ADMIN)
   @Get()
   async findAll(): Promise<OrderDetails[]> {
     return this.orderDetailsService.findAll();
   }
 
-  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Get Order Details by id' })
+  @ApiOkResponse({ description: 'Ok' })
+  @ApiInternalServerErrorResponse({ description: 'Invalid Order Details id' })
   @Get(':id')
   async findByOrderDetailId(
     @Param('id') id: string,
@@ -52,7 +74,9 @@ export class OrderDetailsController {
     return this.orderDetailsService.orderDetail({ order_details_id: id });
   }
 
-  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Get Order Details by Order id' })
+  @ApiOkResponse({ description: 'Ok' })
+  @ApiInternalServerErrorResponse({ description: 'Invalid Order id' })
   @Get('order/:orderId')
   async findByOrderId(
     @Param('orderId') orderId: string,
@@ -62,6 +86,9 @@ export class OrderDetailsController {
     });
   }
 
+  @ApiOperation({ summary: 'Get Order Details by Product id' })
+  @ApiOkResponse({ description: 'Ok' })
+  @ApiInternalServerErrorResponse({ description: 'Invalid Product id' })
   @Roles(Role.ADMIN)
   @Get('product/:productId')
   async findByProductId(
@@ -72,6 +99,12 @@ export class OrderDetailsController {
     });
   }
 
+  @ApiOperation({ summary: 'Update Order Details by Id' })
+  @ApiOkResponse({ description: 'Ok' })
+  @ApiInternalServerErrorResponse({
+    description: 'Invalid Order Details Id',
+  })
+  @ApiBadRequestResponse({ description: 'Bad request UpdateOrderDetailDto' })
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -93,6 +126,9 @@ export class OrderDetailsController {
     });
   }
 
+  @ApiOperation({ summary: 'Delete Order Details by Id' })
+  @ApiOkResponse({ description: 'Ok' })
+  @ApiInternalServerErrorResponse({ description: 'Invalid Order Details id' })
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<OrderDetails> {
     return this.orderDetailsService.delete({ order_details_id: id });
